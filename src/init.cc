@@ -512,6 +512,7 @@ NCCL_PARAM(CrossNic, "CROSS_NIC", 2);
 NCCL_PARAM(GraphDumpFileRank, "GRAPH_DUMP_FILE_RANK", 0);
 NCCL_PARAM(CollNetNodeThreshold, "COLLNET_NODE_THRESHOLD", 2);
 NCCL_PARAM(NvbPreconnect, "NVB_PRECONNECT", 1);
+NCCL_PARAM(CheckDuplicateGPU, "CHECK_DUPLICATE_GPU", 1);
 
 static ncclResult_t initTransportsRank(struct ncclComm* comm, ncclUniqueId* commId) {
   // We use 2 AllGathers
@@ -543,7 +544,9 @@ static ncclResult_t initTransportsRank(struct ncclComm* comm, ncclUniqueId* comm
     memcpy(comm->peerInfo+i, &allGather1Data[i].peerInfo, sizeof(struct ncclPeerInfo));
     if ((i != rank) && (comm->peerInfo[i].hostHash == myInfo->hostHash) && (comm->peerInfo[i].busId == myInfo->busId)) {
       WARN("Duplicate GPU detected : rank %d and rank %d both on CUDA device %lx", rank, i, myInfo->busId);
-      return ncclInvalidUsage;
+      if (ncclParamCheckDuplicateGPU()) {
+        return ncclInvalidUsage;
+      }
     }
   }
 
