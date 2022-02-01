@@ -714,9 +714,13 @@ ncclResult_t ncclTopoGetCpuAffinity(struct ncclTopoSystem* system, int rank, cpu
       cpu = system->nodes[CPU].nodes+cpuIndex;
     }
   }
+  if (gpu == NULL) {
+    WARN("Set CPU affinity : unable to find GPU for rank %d", rank);
+    return ncclSuccess;
+  }
   if (cpu == NULL) {
-    WARN("Set CPU affinity : unable to find GPU/CPU for rank %d", rank);
-    return ncclInternalError;
+    WARN("Set CPU affinity : unable to find CPU for rank %d", rank);
+    return ncclSuccess;
   }
 
   // Query the CPU affinity set we were provided
